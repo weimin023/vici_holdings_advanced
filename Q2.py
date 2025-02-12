@@ -43,3 +43,42 @@ test_mean(Q2_func.calculate_mean_kahan_int32, multi_vec_small, multi_mean_numpy_
 multi_vec_large = np.full(100, np.iinfo(np.int64).max, dtype=np.int64)
 multi_mean_numpy_large = np.mean(multi_vec_large)
 test_mean(Q2_func.calculate_mean_kahan_int64, multi_vec_large, multi_mean_numpy_large, "int64")
+
+
+
+min_max_int32_vec = [np.iinfo(np.int32).min, np.iinfo(np.int32).max]
+expected_mean_min_max_int32 = np.mean(min_max_int32_vec)
+test_mean(Q2_func.calculate_mean_kahan_int32, min_max_int32_vec, expected_mean_min_max_int32, "int32")
+
+min_max_int64_vec = [np.iinfo(np.int64).min, np.iinfo(np.int64).max]
+expected_mean_min_max_int64 = np.mean(min_max_int64_vec)
+test_mean(Q2_func.calculate_mean_kahan_int64, min_max_int64_vec, expected_mean_min_max_int64, "int64")
+
+uint32_overflow_vec = [np.iinfo(np.uint32).max, np.iinfo(np.uint32).max, 1, 1]
+expected_mean_uint32_overflow = np.mean(uint32_overflow_vec)
+test_mean(Q2_func.calculate_mean_kahan_uint32, uint32_overflow_vec, expected_mean_uint32_overflow, "uint32")
+
+
+small_double = np.full(1000000, 1e-8, dtype=np.float64)
+expected_mean_small_double = np.mean(small_double)
+test_mean(Q2_func.calculate_mean_kahan_double, small_double, expected_mean_small_double, "double")
+
+
+nan_inf_vec = [1, 2, np.nan, 4, 5]
+inf_vec = [1, 2, np.inf, 4, 5]
+neg_inf_vec = [1, 2, -np.inf, 4, 5]
+
+try:
+    test_mean(Q2_func.calculate_mean_kahan_int64, nan_inf_vec, np.mean(nan_inf_vec), "int64")
+except Exception as e:
+    print(f"Handled NaN error: {e}")
+
+try:
+    test_mean(Q2_func.calculate_mean_kahan_int64, inf_vec, np.mean(inf_vec), "int64")
+except Exception as e:
+    print(f"Handled Inf error: {e}")
+
+try:
+    test_mean(Q2_func.calculate_mean_kahan_int64, neg_inf_vec, np.mean(neg_inf_vec), "int64")
+except Exception as e:
+    print(f"Handled -Inf error: {e}")
