@@ -27,11 +27,17 @@ static double calculateMeanKahan(const std::vector<T>& numbers) {
 }
 
 PYBIND11_MODULE(Q2_func, m) {
-    m.def("calculate_mean_kahan_int", &calculateMeanKahan<int>, "Calculate mean using Kahan summation for int");
+    // Float
     m.def("calculate_mean_kahan_float", &calculateMeanKahan<float>, "Calculate mean using Kahan summation for float");
+    
+    // Double
     m.def("calculate_mean_kahan_double", &calculateMeanKahan<double>, "Calculate mean using Kahan summation for double");
-    m.def("calculate_mean_kahan_int64", &calculateMeanKahan<int64_t>, "Calculate mean using Kahan summation for int64_t");
+    
+    // Signed Integer
     m.def("calculate_mean_kahan_int32", &calculateMeanKahan<int32_t>, "Calculate mean using Kahan summation for int32_t");
+    m.def("calculate_mean_kahan_int64", &calculateMeanKahan<int64_t>, "Calculate mean using Kahan summation for int64_t");
+    
+    // Unsigned Integer
     m.def("calculate_mean_kahan_uint32", &calculateMeanKahan<uint32_t>, "Calculate mean using Kahan summation for uint32_t");
     m.def("calculate_mean_kahan_uint64", &calculateMeanKahan<uint64_t>, "Calculate mean using Kahan summation for uint64_t");
 }
