@@ -16,8 +16,6 @@ def test_mean(function, input_vec, expected_mean, dtype_name):
 # Test For Empty
 # This case is tested in C++ function, throw std::invalid_argument("The input vector is empty.")
 
-import numpy as np
-
 # Test for Overflow
 int32_vec = [np.iinfo(np.int32).max, 1]
 expected_mean_int32 = np.mean(int32_vec)
