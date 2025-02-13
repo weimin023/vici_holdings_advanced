@@ -10,7 +10,7 @@ def parse_timestamp(timestamp: str):
         # Split the timestamp and check if it's well-formed
         raw_data_list = timestamp.split()
         if len(raw_data_list) != 4:
-            raise ValueError("Malformed data")
+            raise ValueError(f"Malformed data: {timestamp} <sequence_number> <timestamp> <type> <details>")
         
         raw_sequence_number = raw_data_list[0]
         raw_timestamp = raw_data_list[1]
@@ -22,13 +22,18 @@ def parse_timestamp(timestamp: str):
         order_dict = {}
         for item in order_info:
             if ":" not in item:
-                raise ValueError("Malformed order data")
+                raise ValueError(f"Malformed data: {order_info} <details> value missing")
+            
             key, value = item.split(":", 1)
+
+            if not value:
+                raise ValueError(f"Malformed data: {order_info} <details> value missing")
+            
             order_dict[key] = value
         
         required_keys = {"OrderID", "Side", "Price", "Lots"}
         if not required_keys.issubset(order_dict.keys()):
-            raise ValueError("Malformed order data: Missing fields")
+            raise ValueError(f"Malformed order data: {order_info} <details> missing fields")
 
         # Parse timestamp and handle exceptions
         try:
@@ -55,7 +60,7 @@ def time_to_nanoseconds(raw_time):
 
     # Check if time format is correct
     if len(processed_list) != 3:
-        raise ValueError("Malformed order data: Invalid time format")
+        raise ValueError(f"Malformed order data: {raw_time} Invalid timestamp format")
     
     h, m, s = processed_list
     s, ns = s.split(".")
@@ -143,7 +148,7 @@ def test_detect_throttle_violations():
         "000048 11:30:01.790000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68",
     ]
     violations = detect_throttle_violations(test_malformed_entries)
-    assert len(violations) == 5, "Test Failed @test_malformed_entries"
+    assert len(violations) == 6, "Test Failed @test_malformed_entries"
 
     print("Finish.")
 
