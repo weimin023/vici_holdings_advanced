@@ -1,3 +1,4 @@
+import unittest
 from collections import deque
 
 current_day = 0
@@ -89,67 +90,55 @@ def detect_throttle_violations(log_lines):
 
     return violations
 
-def test_detect_throttle_violations():
-    test_empty = []
-    violations = detect_throttle_violations(test_empty)
-    assert len(violations) == 0, "Test Failed @test_empty"
-    
-    test_no_violation_exact_boundary = [
-        "000020 10:15:00.100000000 [ORDER] OrderID:CAA|Side:Buy|Price:3.67|Lots:1",
-        "000021 10:15:00.300000000 [ORDER] OrderID:CAB|Side:Sell|Price:3.69|Lots:1",
-        "000022 10:15:00.500000000 [ORDER] OrderID:CAC|Side:Buy|Price:3.68|Lots:1",
-        "000023 10:15:00.900000000 [ORDER] OrderID:CAD|Side:Sell|Price:3.70|Lots:1",
-        "000024 10:15:01.100000000 [ORDER] OrderID:CAE|Side:Buy|Price:3.71|Lots:1",
-    ]
-    violations = detect_throttle_violations(test_no_violation_exact_boundary)
-    assert len(violations) == 0, "Test Failed @test_no_violation_exact_boundary"
-    
-    test_one_violation = [
-        "000001 09:31:03.100000000 [ORDER] OrderID:AAA|Side:Buy|Price:3.67|Lots:1",
-        "000002 09:31:03.300000000 [ORDER] OrderID:AAB|Side:Sell|Price:3.69|Lots:1",
-        "000003 09:31:03.500000000 [ORDER] OrderID:AAC|Side:Buy|Price:3.68|Lots:1",
-        "000004 09:31:03.700000000 [ORDER] OrderID:AAD|Side:Sell|Price:3.70|Lots:1",
-        "000005 09:31:03.900000000 [ORDER] OrderID:AAE|Side:Buy|Price:3.71|Lots:1",
-        "000006 09:31:04.100000000 [ORDER] OrderID:AAF|Side:Sell|Price:3.72|Lots:1",
-    ]
-    violations = detect_throttle_violations(test_one_violation)
-    assert len(violations) == 2, "Test Failed @test_one_violation"
+class TestThrottleViolations(unittest.TestCase):
 
-    test_cross_day_violation = [
-        "000011 23:59:59.500000000 [ORDER] OrderID:BAB|Side:Sell|Price:3.69|Lots:1",
-        "000012 00:00:00.200000000 [ORDER] OrderID:BAC|Side:Buy|Price:3.68|Lots:1",
-        "000013 00:00:00.400000000 [ORDER] OrderID:BAD|Side:Sell|Price:3.70|Lots:1",
-        "000014 00:00:01.300000000 [ORDER] OrderID:BAE|Side:Buy|Price:3.71|Lots:1",
-        "000015 00:00:02.000000000 [ORDER] OrderID:BAF|Side:Sell|Price:3.72|Lots:1",
-    ]
-    violations = detect_throttle_violations(test_cross_day_violation)
-    assert len(violations) == 0, "Test Failed @test_cross_day_violation"
+    def test_empty(self):
+        self.assertEqual(detect_throttle_violations([]), [])
 
-    test_rolling_window_violation = [
-        "000030 11:00:00.100000000 [ORDER] OrderID:DAA|Side:Buy|Price:3.67|Lots:1",
-        "000031 11:00:00.600000000 [ORDER] OrderID:DAB|Side:Sell|Price:3.69|Lots:1",
-        "000032 11:00:01.000000000 [ORDER] OrderID:DAC|Side:Buy|Price:3.68|Lots:1",
-        "000033 11:00:01.200000000 [ORDER] OrderID:DAD|Side:Sell|Price:3.70|Lots:1",
-        "000034 11:00:01.300000000 [ORDER] OrderID:DAE|Side:Buy|Price:3.71|Lots:1",
-        "000035 11:00:01.800000000 [ORDER] OrderID:DAG|Side:Sell|Price:3.72|Lots:1",
-    ]
-    violations = detect_throttle_violations(test_rolling_window_violation)
-    assert len(violations) == 0, "Test Failed @test_rolling_window_violation"
+    def test_no_violation_exact_boundary(self):
+        test_data = [
+            "000020 10:15:00.100000000 [ORDER] OrderID:CAA|Side:Buy|Price:3.67|Lots:1",
+            "000021 10:15:00.300000000 [ORDER] OrderID:CAB|Side:Sell|Price:3.69|Lots:1",
+            "000022 10:15:00.500000000 [ORDER] OrderID:CAC|Side:Buy|Price:3.68|Lots:1",
+            "000023 10:15:00.900000000 [ORDER] OrderID:CAD|Side:Sell|Price:3.70|Lots:1",
+            "000024 10:15:01.100000000 [ORDER] OrderID:CAE|Side:Buy|Price:3.71|Lots:1",
+        ]
+        self.assertEqual(detect_throttle_violations(test_data), [])
 
-    test_malformed_entries = [
-        "000040 11:30:00.200000000 [ORDER] OrderID:EAA|Side:Buy|Price:3.67|Lots:1",
-        "000041 MISSING_TIMESTAMP [ORDER] OrderID:EAB|Side:Sell|Price:3.69|Lots:1",
-        "WRONG_FORMAT",
-        "000043 11:30:01.100000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68|Lots:1",
-        "000044 11:30:01.500000000 [ORDER] OrderID:EAD|Side:Sell|Price:3.70|Lots:1",
-        "000045 11:30:01.600000000 [ORDER] OrderID:EAD|Side:|Price:3.70|Lots:1",
-        "000046 11:30:01.700000000 [ORDER] OrderID:EAD|Side|Price:3.70|Lots:1",
-        "000047 11:30:01.780000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68|",
-        "000048 11:30:01.790000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68",
-    ]
-    violations = detect_throttle_violations(test_malformed_entries)
-    assert len(violations) == 6, "Test Failed @test_malformed_entries"
+    def test_one_violation(self):
+        test_data = [
+            "000001 09:31:03.100000000 [ORDER] OrderID:AAA|Side:Buy|Price:3.67|Lots:1",
+            "000002 09:31:03.300000000 [ORDER] OrderID:AAB|Side:Sell|Price:3.69|Lots:1",
+            "000003 09:31:03.500000000 [ORDER] OrderID:AAC|Side:Buy|Price:3.68|Lots:1",
+            "000004 09:31:03.700000000 [ORDER] OrderID:AAD|Side:Sell|Price:3.70|Lots:1",
+            "000005 09:31:03.900000000 [ORDER] OrderID:AAE|Side:Buy|Price:3.71|Lots:1",
+            "000006 09:31:04.100000000 [ORDER] OrderID:AAF|Side:Sell|Price:3.72|Lots:1",
+        ]
+        self.assertEqual(len(detect_throttle_violations(test_data)), 2)
 
-    print("Finish.")
+    def test_cross_day_violation(self):
+        test_data = [
+            "000011 23:59:59.500000000 [ORDER] OrderID:BAB|Side:Sell|Price:3.69|Lots:1",
+            "000012 00:00:00.200000000 [ORDER] OrderID:BAC|Side:Buy|Price:3.68|Lots:1",
+            "000013 00:00:00.400000000 [ORDER] OrderID:BAD|Side:Sell|Price:3.70|Lots:1",
+            "000014 00:00:01.300000000 [ORDER] OrderID:BAE|Side:Buy|Price:3.71|Lots:1",
+            "000015 00:00:02.000000000 [ORDER] OrderID:BAF|Side:Sell|Price:3.72|Lots:1",
+        ]
+        self.assertEqual(detect_throttle_violations(test_data), [])
 
-test_detect_throttle_violations()
+    def test_malformed_entries(self):
+        test_data = [
+            "000040 11:30:00.200000000 [ORDER] OrderID:EAA|Side:Buy|Price:3.67|Lots:1",
+            "000041 MISSING_TIMESTAMP [ORDER] OrderID:EAB|Side:Sell|Price:3.69|Lots:1",
+            "WRONG_FORMAT",
+            "000043 11:30:01.100000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68|Lots:1",
+            "000044 11:30:01.500000000 [ORDER] OrderID:EAD|Side:Sell|Price:3.70|Lots:1",
+            "000045 11:30:01.600000000 [ORDER] OrderID:EAD|Side:|Price:3.70|Lots:1",
+            "000046 11:30:01.700000000 [ORDER] OrderID:EAD|Side|Price:3.70|Lots:1",
+            "000047 11:30:01.780000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68|",
+            "000048 11:30:01.790000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68",
+        ]
+        self.assertEqual(len(detect_throttle_violations(test_data)), 6)
+
+if __name__ == '__main__':
+    unittest.main()
