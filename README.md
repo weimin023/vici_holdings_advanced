@@ -46,5 +46,21 @@ python3 Q1.py
 1. 使用 Kahan 求和補償算法(Kahan Summation Algorithm)來計算輸入數列的均值，以減少浮點數加法的累積誤差。
 2. 使用template function，允許輸入 std::vector<T>，T可以是任一數值類型。
 ### 測試
-使用`pyblind`
-
+1. 透過`pyblind`將C++函式導出，並在python環境調用。
+2. 將`numpy`算出的mean作為ground truth，與C++實作的函式結果直接比較。誤差小於1e9則可驗證C++函式答案正確。
+### 執行
+1. 先build C++ mean function
+```
+mkdir build
+cd build
+cmake ..
+make -j20
+```
+2. 執行python test script
+```
+python3 Q2.py
+```
+測試涵蓋了:
+1. 幾種variable type的極值(int32, uint32, int64, uint64)出現overflow時會不會爆掉。
+2. 資料量很大的情況
+3. 同時有正負值的情況
