@@ -39,5 +39,5 @@
 ```
 python3 Q1.py
 ```
-會測試共計6種test cases。對於log中的非法輸入將會在terminal raise exception。
+會測試共計6種test cases。對於log中的非法輸入將會在terminal raise exception。\
 每個test case的invalid order將會被存在***violations_log***中，可自行印出。
