@@ -9,7 +9,7 @@
 ### 舉例:
 第一個**rolling one-second time window**內有6筆訂單，故後面兩筆為violations。
 
-第二個**rolling one-second time window**以第二筆訂單為起始點。中間兩筆訂單在前一個window就視為invalid了，故不考慮。\
+第二個**rolling one-second time window**以第二筆訂單為起始點。中間兩筆訂單在前一個window就視為invalid了，故不考慮。
 因為已有四筆valid訂單，最後一筆新訂單為**invalid**。
 ![image](https://github.com/weimin023/vici_holdings_advanced/blob/main/vici2.drawio.png)
 第三個**rolling one-second time window**以第三筆訂單為起始點。思路延續上一個window，最後一筆新訂單為**valid**。\
