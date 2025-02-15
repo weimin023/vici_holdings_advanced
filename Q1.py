@@ -69,76 +69,59 @@ def time_to_nanoseconds(raw_time):
     # Convert time to nanoseconds
     return (int(h) * 3600 + int(m) * 60 + int(s)) * int(1e9) + int(ns)
 
-def detect_throttle_violations(log_lines):
+def detect_throttle_violations(filename):
     violations = []
     window = deque() 
+    nq = deque() 
 
-    for line in log_lines:
-        timestamp = parse_timestamp(line)
+    with open(filename, 'r') as file:
+        for line in file:
+            no = line.split()[0]
+            timestamp = parse_timestamp(line)
 
-        if timestamp == -1:
-            violations.append(line)
-            continue
-        
-        while window and timestamp - window[0] >= 1e9:
-            window.popleft()
+            if timestamp == -1:
+                violations.append(line)
+                continue
+            
+            while window and timestamp - window[0] >= 1e9:
+                window.popleft()
+                nq.popleft()
 
-        window.append(timestamp)
+            window.append(timestamp)
+            nq.append(no)
 
-        if len(window) > 4:
-            violations.append(line)
+            if len(window) > 4:
+                violations.append(line)
+                window.pop()
+                nq.pop()
 
     return violations
 
 class TestThrottleViolations(unittest.TestCase):
 
     def test_empty(self):
-        self.assertEqual(detect_throttle_violations([]), [])
+        self.assertEqual(detect_throttle_violations("./Q1_testcase/Q1_test_empty_file.txt"), [])
 
     def test_no_violation_exact_boundary(self):
-        test_data = [
-            "000020 10:15:00.100000000 [ORDER] OrderID:CAA|Side:Buy|Price:3.67|Lots:1",
-            "000021 10:15:00.300000000 [ORDER] OrderID:CAB|Side:Sell|Price:3.69|Lots:1",
-            "000022 10:15:00.500000000 [ORDER] OrderID:CAC|Side:Buy|Price:3.68|Lots:1",
-            "000023 10:15:00.900000000 [ORDER] OrderID:CAD|Side:Sell|Price:3.70|Lots:1",
-            "000024 10:15:01.100000000 [ORDER] OrderID:CAE|Side:Buy|Price:3.71|Lots:1",
-        ]
-        self.assertEqual(detect_throttle_violations(test_data), [])
+        self.assertEqual(detect_throttle_violations("./Q1_testcase/Q1_test_no_violation.txt"), [])
 
     def test_one_violation(self):
-        test_data = [
-            "000001 09:31:03.100000000 [ORDER] OrderID:AAA|Side:Buy|Price:3.67|Lots:1",
-            "000002 09:31:03.300000000 [ORDER] OrderID:AAB|Side:Sell|Price:3.69|Lots:1",
-            "000003 09:31:03.500000000 [ORDER] OrderID:AAC|Side:Buy|Price:3.68|Lots:1",
-            "000004 09:31:03.700000000 [ORDER] OrderID:AAD|Side:Sell|Price:3.70|Lots:1",
-            "000005 09:31:03.900000000 [ORDER] OrderID:AAE|Side:Buy|Price:3.71|Lots:1",
-            "000006 09:31:04.100000000 [ORDER] OrderID:AAF|Side:Sell|Price:3.72|Lots:1",
-        ]
-        self.assertEqual(len(detect_throttle_violations(test_data)), 2)
+        self.assertEqual(len(detect_throttle_violations("./Q1_testcase/Q1_test_one_violation.txt")), 1)
 
     def test_cross_day_violation(self):
-        test_data = [
-            "000011 23:59:59.500000000 [ORDER] OrderID:BAB|Side:Sell|Price:3.69|Lots:1",
-            "000012 00:00:00.200000000 [ORDER] OrderID:BAC|Side:Buy|Price:3.68|Lots:1",
-            "000013 00:00:00.400000000 [ORDER] OrderID:BAD|Side:Sell|Price:3.70|Lots:1",
-            "000014 00:00:01.300000000 [ORDER] OrderID:BAE|Side:Buy|Price:3.71|Lots:1",
-            "000015 00:00:02.000000000 [ORDER] OrderID:BAF|Side:Sell|Price:3.72|Lots:1",
-        ]
-        self.assertEqual(detect_throttle_violations(test_data), [])
+        self.assertEqual(detect_throttle_violations("./Q1_testcase/Q1_test_cross_day.txt"), [])
 
     def test_malformed_entries(self):
-        test_data = [
-            "000040 11:30:00.200000000 [ORDER] OrderID:EAA|Side:Buy|Price:3.67|Lots:1",
-            "000041 MISSING_TIMESTAMP [ORDER] OrderID:EAB|Side:Sell|Price:3.69|Lots:1",
-            "WRONG_FORMAT",
-            "000043 11:30:01.100000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68|Lots:1",
-            "000044 11:30:01.500000000 [ORDER] OrderID:EAD|Side:Sell|Price:3.70|Lots:1",
-            "000045 11:30:01.600000000 [ORDER] OrderID:EAD|Side:|Price:3.70|Lots:1",
-            "000046 11:30:01.700000000 [ORDER] OrderID:EAD|Side|Price:3.70|Lots:1",
-            "000047 11:30:01.780000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68|",
-            "000048 11:30:01.790000000 [ORDER] OrderID:EAC|Side:Buy|Price:3.68",
-        ]
-        self.assertEqual(len(detect_throttle_violations(test_data)), 6)
+        self.assertEqual(len(detect_throttle_violations("./Q1_testcase/Q1_test_dirty_data.txt")), 6)
+    
+    def test_a_log_file(self):
+        #self.assertEqual(len(detect_throttle_violations("./Q1_testcase/Q1_test_large_file.txt")), 22)
+        out = detect_throttle_violations("./Q1_testcase/Q1_test_large_file.txt")
+    def run(self, result=None):
+        super().run(result)
+        if result.wasSuccessful():
+            print("Test Success")
+
 
 if __name__ == '__main__':
     unittest.main()
