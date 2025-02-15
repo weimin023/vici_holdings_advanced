@@ -72,11 +72,9 @@ def time_to_nanoseconds(raw_time):
 def detect_throttle_violations(filename):
     violations = []
     window = deque() 
-    nq = deque() 
 
     with open(filename, 'r') as file:
         for line in file:
-            no = line.split()[0]
             timestamp = parse_timestamp(line)
 
             if timestamp == -1:
@@ -85,38 +83,48 @@ def detect_throttle_violations(filename):
             
             while window and timestamp - window[0] >= 1e9:
                 window.popleft()
-                nq.popleft()
 
             window.append(timestamp)
-            nq.append(no)
 
             if len(window) > 4:
                 violations.append(line)
                 window.pop()
-                nq.pop()
 
     return violations
 
 class TestThrottleViolations(unittest.TestCase):
 
+### violated logs are in the list of "violations_log", print out if it is necessary
     def test_empty(self):
-        self.assertEqual(detect_throttle_violations("./Q1_testcase/Q1_test_empty_file.txt"), [])
+        print("==================Test 1==================")
+        violations_log = detect_throttle_violations("./Q1_testcase/Q1_test_empty_file.txt")
+        self.assertEqual(violations_log, [])
 
     def test_no_violation_exact_boundary(self):
-        self.assertEqual(detect_throttle_violations("./Q1_testcase/Q1_test_no_violation.txt"), [])
+        print("==================Test 2==================")
+        violations_log = detect_throttle_violations("./Q1_testcase/Q1_test_no_violation.txt")
+        self.assertEqual(violations_log, [])
 
     def test_one_violation(self):
-        self.assertEqual(len(detect_throttle_violations("./Q1_testcase/Q1_test_one_violation.txt")), 1)
+        print("==================Test 3==================")
+        violations_log = detect_throttle_violations("./Q1_testcase/Q1_test_one_violation.txt")
+        self.assertEqual(len(violations_log), 1)
 
     def test_cross_day_violation(self):
-        self.assertEqual(detect_throttle_violations("./Q1_testcase/Q1_test_cross_day.txt"), [])
+        print("==================Test 4==================")
+        violations_log = detect_throttle_violations("./Q1_testcase/Q1_test_cross_day.txt")
+        self.assertEqual(violations_log, [])
 
     def test_malformed_entries(self):
-        self.assertEqual(len(detect_throttle_violations("./Q1_testcase/Q1_test_dirty_data.txt")), 6)
+        print("==================Test 5==================")
+        violations_log = detect_throttle_violations("./Q1_testcase/Q1_test_dirty_data.txt")
+        self.assertEqual(len(violations_log), 6)
     
     def test_a_log_file(self):
-        #self.assertEqual(len(detect_throttle_violations("./Q1_testcase/Q1_test_large_file.txt")), 22)
-        out = detect_throttle_violations("./Q1_testcase/Q1_test_large_file.txt")
+        print("==================Test 6==================")
+        violations_log = detect_throttle_violations("./Q1_testcase/Q1_test_large_file.txt")
+        self.assertEqual(len(violations_log), 17)
+
     def run(self, result=None):
         super().run(result)
         if result.wasSuccessful():
